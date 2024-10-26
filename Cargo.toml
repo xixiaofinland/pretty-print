@@ -1,0 +1,10 @@
+[package]
+name = "pretty-print"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+typed-arena = "2.0.2"
+
+[dev-dependencies]
+serde_json = "1.0.132"
