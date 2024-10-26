@@ -1,4 +1,4 @@
-use pretty_print::{pretty_print, NBuilder, NRef};
+use pretty_printing::{pretty_print, NBuilder, NRef};
 
 #[derive(Clone, Copy)]
 struct JsonBuilder<'a>(&'a NBuilder<'a>);
