@@ -1,9 +1,9 @@
 [package]
 name = "pretty-printing"
 authors = ["Xi Xiao <tdxiaoxi2@gmail.com>"]
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
-description = "A Tmux plugin to quickly create session for folders in configured paths."
+description = "A simple pretty print implementation"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
