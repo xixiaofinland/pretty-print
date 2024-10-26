@@ -3,6 +3,7 @@ use typed_arena::Arena;
 pub type NRef<'a> = &'a N<'a>;
 
 // `Notation`, equals the `Doc` in Wadler's Printer
+#[derive(Debug)]
 pub enum N<'a> {
     Newline,
     Text(String, u32),
@@ -33,16 +34,16 @@ impl<'a> NBuilder<'a> {
         self.0.alloc(N::Flat(n_ref))
     }
 
-    pub fn indent(&'a self, indent: u32, n_ref: NRef<'a>) -> Nref<'a> {
+    pub fn indent(&'a self, indent: u32, n_ref: NRef<'a>) -> NRef<'a> {
         self.0.alloc(N::Indent(indent, n_ref))
     }
 
-    pub fn concat(&'a self, n_refs: impl IntoIterator<Item = NRef<'a>>) -> Nref<'a> {
+    pub fn concat(&'a self, n_refs: impl IntoIterator<Item = NRef<'a>>) -> NRef<'a> {
         let n_vec = n_refs.into_iter().collect::<Vec<_>>();
         self.0.alloc(N::Concat(n_vec))
     }
 
-    pub fn choice(&'a self, first: NRef<'a>, second: NRef<'a>) -> Nref<'a> {
+    pub fn choice(&'a self, first: NRef<'a>, second: NRef<'a>) -> NRef<'a> {
         self.0.alloc(N::Choice(first, second))
     }
 }
