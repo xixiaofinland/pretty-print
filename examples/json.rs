@@ -110,8 +110,8 @@ fn main() {
 
     // Get the filename to parse from the command line args
     let env_args = env::args().collect::<Vec<_>>();
-    if env_args.len() != 2 {
-        panic!("Usage: cargo run --release --example json FILENAME.json");
+    if env_args.len() != 3 {
+        panic!("Usage: cargo run --release --example json FILENAME.json 80");
     }
     let filename = &env_args[1];
 
@@ -131,7 +131,9 @@ fn main() {
 
     // Pretty print the Notation
     let start = Instant::now();
-    let output = pretty_print(notation, 120);
+
+    let max_width: u32 = env_args[2].parse().unwrap();
+    let output = pretty_print(notation, max_width);
     let ms_to_pretty_print = start.elapsed().as_millis();
 
     // Print to terminal
