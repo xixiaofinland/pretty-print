@@ -1,7 +1,10 @@
 [package]
 name = "pretty-print"
-version = "0.1.0"
+authors = ["Xi Xiao <tdxiaoxi2@gmail.com>"]
+version = "0.0.1"
 edition = "2021"
+description = "A Tmux plugin to quickly create session for folders in configured paths."
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 typed-arena = "2.0.2"
