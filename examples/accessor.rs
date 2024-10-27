@@ -1,32 +1,12 @@
 use colored::Colorize;
-use pretty_printing::{pretty_print, NBuilder, NRef};
-use std::{fs, path::Path};
-use tree_sitter::{Language, Node, Parser, Tree};
+use tree_sitter::Node;
 
-fn main() {
-    let tree = parse();
-    let n = tree.root_node().first_c();
-    println!("{}", n.kind());
-}
-
-pub fn parse() -> Tree {
-    let mut parser = Parser::new();
-    parser
-        .set_language(&language())
-        .expect("Error loading Apex grammar");
-
-    let source_code = fs::read_to_string(Path::new("examples/a.cls")).unwrap();
-
-    let ast_tree = parser.parse(&source_code, None).unwrap();
-    let root_node = &ast_tree.root_node();
-
-    if root_node.has_error() {
-        panic!("Parser encounters an error node in the tree.");
-    }
-
-    ast_tree
-}
-
+// `c` => child
+// `cv` => child value
+// `cs` => children
+// `csv` => children value
+// `by_n` => by name
+// `by_k` => by kind
 #[allow(dead_code)]
 pub trait Accessor<'t> {
     fn v<'a>(&self, source_code: &'a str) -> &'a str;
@@ -170,10 +150,19 @@ impl<'t> Accessor<'t> for Node<'t> {
     }
 }
 
-extern "C" {
-    fn tree_sitter_apex() -> Language;
-}
-
-pub fn language() -> Language {
-    unsafe { tree_sitter_apex() }
-}
+//pub struct NamedChildren<'t> {
+//    cursor: TreeCursor<'t>,
+//    node: Node<'t>,
+//}
+//
+//impl<'t> Iterator for NamedChildren<'t> {
+//    type Item = Node<'t>;
+//
+//    fn next(&mut self) -> Option<Self::Item> {
+//        if self.cursor.goto_first_child() {
+//            Some(self.node)
+//        } else {
+//            None
+//        }
+//    }
+//}
