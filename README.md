@@ -1,7 +1,8 @@
 # Pretty printing
 
-A simple implementation based on [Justin's blog](https://justinpombrio.net/2024/02/23/a-twist-on-Wadlers-printer.html)
-It's tailored for [afmt repo](https://github.com/xixiaofinland/afmt).
+A simple implementation based on [Justin's blog](https://justinpombrio.net/2024/02/23/a-twist-on-Wadlers-printer.html).
+
+It's tailored to be used in [afmt repo](https://github.com/xixiaofinland/afmt).
 
 ## Use Cases
 
