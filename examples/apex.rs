@@ -1,149 +1,34 @@
+use std::{fs, path::Path};
+
 use pretty_printing::{pretty_print, NBuilder, NRef};
+use tree_sitter::{Language, Node, Parser, Tree};
 
-#[derive(Clone, Copy)]
-struct JsonBuilder<'a>(&'a NBuilder<'a>);
+extern "C" {
+    fn tree_sitter_apex() -> Language;
+}
 
-impl<'a> JsonBuilder<'a> {
-    fn json_to_notation(self, json: serde_json::Value) -> NRef<'a> {
-        use serde_json::Value::{Array, Bool, Null, Number, Object, String};
+pub fn language() -> Language {
+    unsafe { tree_sitter_apex() }
+}
 
-        match json {
-            Null => self.json_null(),
-            Bool(b) => self.json_bool(b),
-            Number(n) => self.json_number(n),
-            String(s) => self.json_string(&s),
-            Array(elems) => {
-                self.json_array(elems.into_iter().map(|elem| self.json_to_notation(elem)))
-            }
-            Object(entries) => self.json_object(
-                entries
-                    .into_iter()
-                    .map(|(key, val)| (key, self.json_to_notation(val))),
-            ),
-        }
+pub fn parse() -> Tree {
+    let mut parser = Parser::new();
+    parser
+        .set_language(&language())
+        .expect("Error loading Apex grammar");
+
+    let source_code = fs::read_to_string(Path::new("a.cls")).unwrap();
+
+    let ast_tree = parser.parse(&source_code, None).unwrap();
+    let root_node = &ast_tree.root_node();
+
+    if root_node.has_error() {
+        panic!("Parser encounters an error node in the tree.");
     }
 
-    fn json_null(self) -> NRef<'a> {
-        self.0.txt("false")
-    }
-
-    fn json_bool(self, b: bool) -> NRef<'a> {
-        if b {
-            self.0.txt("true")
-        } else {
-            self.0.txt("false")
-        }
-    }
-
-    fn json_string(self, s: &str) -> NRef<'a> {
-        // TODO: escape sequences
-        self.0.txt(format!("\"{}\"", s))
-    }
-
-    fn json_number(self, n: impl ToString) -> NRef<'a> {
-        self.0.txt(n)
-    }
-
-    fn json_array(self, elems: impl IntoIterator<Item = NRef<'a>>) -> NRef<'a> {
-        let elems = elems.into_iter().collect::<Vec<_>>();
-        self.surrounded("[", &elems, "]")
-    }
-
-    fn json_object_entry(self, key: String, value: NRef<'a>) -> NRef<'a> {
-        self.0
-            .concat([self.json_string(&key), self.0.txt(": "), value])
-    }
-
-    fn json_object(self, entries: impl IntoIterator<Item = (String, NRef<'a>)>) -> NRef<'a> {
-        let entries = entries
-            .into_iter()
-            .map(|(key, val)| self.json_object_entry(key, val))
-            .collect::<Vec<_>>();
-        self.surrounded("{", &entries, "}")
-    }
-
-    fn comma_sep_single_line(self, elems: &[NRef<'a>]) -> NRef<'a> {
-        let mut list = self.0.flat(elems[0]);
-        for elem in &elems[1..] {
-            list = self.0.concat([list, self.0.txt(", "), self.0.flat(elem)]);
-        }
-        list
-    }
-
-    fn comma_sep_multi_line(self, elems: &[NRef<'a>]) -> NRef<'a> {
-        let mut list = elems[0];
-        for elem in &elems[1..] {
-            list = self.0.concat([list, self.0.txt(", "), self.0.nl(), elem]);
-        }
-        list
-    }
-
-    fn surrounded(self, open: &str, elems: &[NRef<'a>], closed: &str) -> NRef<'a> {
-        if elems.is_empty() {
-            return self.0.txt(format!("{}{}", open, closed));
-        }
-
-        let single_line = self.0.concat([
-            self.0.txt(open),
-            self.comma_sep_single_line(elems),
-            self.0.txt(closed),
-        ]);
-        let multi_line = self.0.concat([
-            self.0.txt(open),
-            self.0.indent(
-                4,
-                self.0
-                    .concat([self.0.nl(), self.comma_sep_multi_line(elems)]),
-            ),
-            self.0.nl(),
-            self.0.txt(closed),
-        ]);
-        self.0.choice(single_line, multi_line)
-    }
+    ast_tree
 }
 
 fn main() {
-    use std::env;
-    use std::fs::File;
-    use std::io::BufReader;
-    use std::time::Instant;
-
-    // Get the filename to parse from the command line args
-    let env_args = env::args().collect::<Vec<_>>();
-    if env_args.len() != 3 {
-        panic!("Usage: cargo run --release --example json FILENAME.json 80");
-    }
-    let filename = &env_args[1];
-
-    // Parse the file into json using serde
-    let start = Instant::now();
-    let file = File::open(filename).unwrap();
-    let reader = BufReader::new(file);
-    let json = serde_json::from_reader(reader).unwrap();
-    let ms_to_parse = start.elapsed().as_millis();
-
-    // Convert it to a Notation
-    let start = Instant::now();
-    let notation_builder = NBuilder::new();
-    let json_builder = JsonBuilder(&notation_builder);
-    let notation = json_builder.json_to_notation(json);
-    let ms_to_construct = start.elapsed().as_millis();
-
-    // Pretty print the Notation
-    let start = Instant::now();
-
-    let max_width: u32 = env_args[2].parse().unwrap();
-    let output = pretty_print(notation, max_width);
-    let ms_to_pretty_print = start.elapsed().as_millis();
-
-    // Print to terminal
-    let start = Instant::now();
-    println!("{}", output);
-    let ms_to_output = start.elapsed().as_millis();
-
-    // Print timing info to stderr
-    eprintln!("Time to parse file as Json:    {} ms", ms_to_parse);
-    eprintln!("Time to construct Notation:    {} ms", ms_to_construct);
-    eprintln!("Time to pretty print Notation: {} ms", ms_to_pretty_print);
-    eprintln!("Time to pretty to terminal:    {} ms", ms_to_output);
+    parse();
 }
