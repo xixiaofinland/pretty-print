@@ -6,7 +6,7 @@ pub type NRef<'a> = &'a N<'a>;
 #[derive(Debug)]
 pub enum N<'a> {
     Newline,
-    Text(String, u32),
+    Text(String, u32), // The given text should not contain line breaks
     Flat(NRef<'a>),
     Indent(u32, NRef<'a>),
     Concat(Vec<NRef<'a>>),
