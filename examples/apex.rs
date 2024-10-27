@@ -4,12 +4,69 @@ use std::{fs, path::Path};
 use tree_sitter::{Language, Node, Parser, Tree};
 
 fn main() {
-    let tree = parse();
+    let (tree, source_code) = parse();
     let n = tree.root_node().first_c();
-    println!("{}", n.kind());
+
+    let notation_builder = NBuilder::new();
+    let builder = TreeBuilder(&notation_builder);
+    let notation = builder.rewrite_class(n, &source_code);
+
+    let output = pretty_print(notation, 40);
+    println!("{}", output);
 }
 
-pub fn parse() -> Tree {
+#[derive(Clone, Copy)]
+struct TreeBuilder<'a>(&'a NBuilder<'a>);
+
+impl<'a> TreeBuilder<'a> {
+    fn rewrite_class(self, n: Node, source_code: &str) -> NRef<'a> {
+        let v = n.v(source_code);
+        self.0.txt(v)
+    }
+}
+
+//fn rewrite_class<'a>(node: &Node, source_code: &str) -> NRef<'a> {
+//    //try_add_pref_and_offset(&mut result, shape, context);
+//    let b = NBuilder::new();
+//
+//    if let Some(ref a) = node.try_c_by_k("modifiers") {
+//        result.push_str(&rewrite::<Modifiers>(a, shape, context));
+//
+//        if let Some(_) = a.try_c_by_k("modifier") {
+//            result.push(' ');
+//        }
+//    }
+//
+//    result.push_str("class ");
+//    result.push_str(node.cv_by_n("name", source_code));
+//
+//    if let Some(ref c) = node.try_c_by_n("type_parameters") {
+//        result.push_str(&rewrite_shape::<TypeParameters>(c, shape, false, context));
+//    }
+//
+//    if let Some(ref c) = node.try_c_by_n("superclass") {
+//        result.push_str(&rewrite_shape::<SuperClass>(c, shape, false, context));
+//    }
+//
+//    if let Some(ref c) = node.try_c_by_n("interfaces") {
+//        result.push_str(&rewrite_shape::<Interfaces>(c, shape, false, context));
+//    }
+//
+//    result.push_str(" {\n");
+//
+//    let body_node = node.c_by_n("body");
+//    result.push_str(&body_node.apply_to_standalone_children(
+//        shape,
+//        context,
+//        |c, c_shape, c_context| c._visit(c_shape, c_context),
+//    ));
+//
+//    result.push_str(&format!("{}}}", shape.indent.as_string(context.config)));
+//    //try_add_standalone_suffix_no_semicolumn(node, &mut result, shape, source_code);
+//    result
+//}
+
+fn parse() -> (Tree, String) {
     let mut parser = Parser::new();
     parser
         .set_language(&language())
@@ -24,7 +81,7 @@ pub fn parse() -> Tree {
         panic!("Parser encounters an error node in the tree.");
     }
 
-    ast_tree
+    (ast_tree, source_code)
 }
 
 #[allow(dead_code)]
