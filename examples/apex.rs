@@ -20,8 +20,12 @@ struct TreeBuilder<'a>(&'a NBuilder<'a>);
 
 impl<'a> TreeBuilder<'a> {
     fn rewrite_class(self, n: Node, source_code: &str) -> NRef<'a> {
-        let v = n.v(source_code);
-        self.0.txt(v)
+        //let v = n.v(source_code);
+        //self.0.txt(v)
+
+        let left = self.0.txt("single line text I'm heerereeeeeeeeeeee!");
+        let right = self.0.txt("multiple line text.");
+        self.0.choice(left, right)
     }
 }
 
