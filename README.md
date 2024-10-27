@@ -5,10 +5,13 @@ It's tailored for [afmt repo](https://github.com/xixiaofinland/afmt).
 
 ## Use Cases
 
-There are a couple of json files in `examples` folder. You can run the command below to check the
-output.
-
+There are a couple of json files in `examples` folder.
+For example, you can run the command below to see the different printing result.
 
 ```bash
-cargo run --release --example json examples/4.json 40 # the last number is the printing line max_width.
+# the last number is the line max_width.
+cargo run --release --example json examples/4.json 20
+cargo run --release --example json examples/4.json 37
+cargo run --release --example json examples/4.json 40
+cargo run --release --example json examples/4.json 120
 ```
